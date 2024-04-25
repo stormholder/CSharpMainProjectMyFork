@@ -14,6 +14,7 @@ public class EnterPoint : MonoBehaviour
     // This is a comment for homework
 
     // Another comment
+    // Local changes comment
     void Start()
     {
         Time.timeScale = _timeScale;
