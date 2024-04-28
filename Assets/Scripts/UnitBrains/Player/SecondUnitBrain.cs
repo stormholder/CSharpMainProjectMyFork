@@ -21,14 +21,9 @@ namespace UnitBrains.Player
             ///////////////////////////////////////           
             
             var currentTemperature = GetTemperature();
-            if (_overheated || currentTemperature > overheatTemperature) {
-                return;
-            }
+            if (currentTemperature >= overheatTemperature) return;
             
-            int projectileCount = currentTemperature + 1;
-            // Debug.Log("Projectiles: " + projectileCount + "; Temperature: " + currentTemperature);
-
-            for (int i = 0; i < projectileCount; i++) {
+            for (int i = 0; i <= projectileCount; i++) {
                 var projectile = CreateProjectile(forTarget);
                 AddProjectileToList(projectile, intoList);
             }
