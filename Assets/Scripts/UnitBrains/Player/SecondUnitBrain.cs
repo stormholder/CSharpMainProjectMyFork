@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Model.Runtime.Projectiles;
 using UnityEngine;
+using Utilities;
 
 namespace UnitBrains.Player
 {
@@ -12,6 +14,8 @@ namespace UnitBrains.Player
         private float _temperature = 0f;
         private float _cooldownTime = 0f;
         private bool _overheated;
+
+        private List<Vector2Int> unreachableTargets = new();
         
         protected override void GenerateProjectiles(Vector2Int forTarget, List<BaseProjectile> intoList)
         {
@@ -33,7 +37,10 @@ namespace UnitBrains.Player
 
         public override Vector2Int GetNextStep()
         {
-            return base.GetNextStep();
+            if (!unreachableTargets.Any() || unreachableTargets.Any(t => IsTargetInRange(t))) {
+                return unit.Pos;
+            }
+            return unit.Pos.CalcNextStepTowards(unreachableTargets.First());
         }
 
         protected override List<Vector2Int> SelectTargets()
@@ -41,15 +48,26 @@ namespace UnitBrains.Player
             ///////////////////////////////////////
             // Homework 1.4 (1st block, 4rd module)
             ///////////////////////////////////////
-            List<Vector2Int> reachableTargets = GetReachableTargets();
+            
+            List<Vector2Int> targets = new();
+            List<Vector2Int> reachableTargets = new();
+            unreachableTargets.Clear();
+            var allTargets = GetAllTargets();
+            var closestValue = float.MaxValue;
 
-            if (reachableTargets.Count == 0) {
-                return reachableTargets;
+            if (!allTargets.Any()) {
+                targets.Add(
+                    runtimeModel.RoMap.Bases[
+                        IsPlayerUnitBrain 
+                            ? Model.RuntimeModel.BotPlayerId 
+                            : Model.RuntimeModel.PlayerId
+                        ]
+                );
+                return targets;
             }
             
-            var closestValue = float.MaxValue;
             Vector2Int closestTarget = new Vector2Int(int.MinValue, int.MinValue);
-            foreach (var target in reachableTargets) {
+            foreach (var target in targets) {
                 var targetDistance = DistanceToOwnBase(target);
                 if (targetDistance < closestValue) {
                     closestValue = targetDistance;
@@ -57,9 +75,18 @@ namespace UnitBrains.Player
                 }
             }
             if (closestValue != float.MaxValue) {
-                reachableTargets.Clear();
-                reachableTargets.Add(closestTarget);
+                targets.Clear();
+                targets.Add(closestTarget);
             }
+
+            SortByDistanceToOwnBase(targets);
+
+            unreachableTargets.Add(targets[0]);
+
+            if (IsTargetInRange(targets[0])) {
+                reachableTargets.Add(targets[0]);
+            }
+
             return reachableTargets;
             ///////////////////////////////////////
         }
