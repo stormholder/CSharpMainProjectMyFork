@@ -37,10 +37,9 @@ namespace UnitBrains.Player
 
         public override Vector2Int GetNextStep()
         {
-            if (!unreachableTargets.Any() || unreachableTargets.Any(t => IsTargetInRange(t))) {
-                return unit.Pos;
-            }
-            return unit.Pos.CalcNextStepTowards(unreachableTargets.First());
+            return unreachableTargets.Any()
+               ? unit.Pos.CalcNextStepTowards(unreachableTargets.First())
+               : unit.Pos;
         }
 
         protected override List<Vector2Int> SelectTargets()
@@ -49,25 +48,24 @@ namespace UnitBrains.Player
             // Homework 1.4 (1st block, 4rd module)
             ///////////////////////////////////////
             
-            List<Vector2Int> targets = new();
             List<Vector2Int> reachableTargets = new();
             unreachableTargets.Clear();
             var allTargets = GetAllTargets();
             var closestValue = float.MaxValue;
 
             if (!allTargets.Any()) {
-                targets.Add(
+                reachableTargets.Add(
                     runtimeModel.RoMap.Bases[
                         IsPlayerUnitBrain 
                             ? Model.RuntimeModel.BotPlayerId 
                             : Model.RuntimeModel.PlayerId
                         ]
                 );
-                return targets;
+                return reachableTargets;
             }
             
             Vector2Int closestTarget = new Vector2Int(int.MinValue, int.MinValue);
-            foreach (var target in targets) {
+            foreach (var target in allTargets) {
                 var targetDistance = DistanceToOwnBase(target);
                 if (targetDistance < closestValue) {
                     closestValue = targetDistance;
@@ -75,16 +73,10 @@ namespace UnitBrains.Player
                 }
             }
             if (closestValue != float.MaxValue) {
-                targets.Clear();
-                targets.Add(closestTarget);
-            }
-
-            SortByDistanceToOwnBase(targets);
-
-            unreachableTargets.Add(targets[0]);
-
-            if (IsTargetInRange(targets[0])) {
-                reachableTargets.Add(targets[0]);
+                unreachableTargets.Add(closestTarget);
+                if (IsTargetInRange(closestTarget)) {
+                    reachableTargets.Add(closestTarget);
+                }
             }
 
             return reachableTargets;
