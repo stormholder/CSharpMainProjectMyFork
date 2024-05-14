@@ -9,11 +9,15 @@ namespace UnitBrains.Player
     public class SecondUnitBrain : DefaultPlayerUnitBrain
     {
         public override string TargetUnitName => "Cobra Commando";
+        public static int UnitCounter = 0;
+        public const int MaxTargets = 3;
         private const float OverheatTemperature = 3f;
         private const float OverheatCooldown = 2f;
         private float _temperature = 0f;
         private float _cooldownTime = 0f;
         private bool _overheated;
+
+        private int UnitID = UnitCounter++;
 
         private List<Vector2Int> unreachableTargets = new();
         
@@ -50,8 +54,7 @@ namespace UnitBrains.Player
             
             List<Vector2Int> reachableTargets = new();
             unreachableTargets.Clear();
-            var allTargets = GetAllTargets();
-            var closestValue = float.MaxValue;
+            var allTargets = new List<Vector2Int>(GetAllTargets());
 
             if (!allTargets.Any()) {
                 reachableTargets.Add(
@@ -63,20 +66,15 @@ namespace UnitBrains.Player
                 );
                 return reachableTargets;
             }
+
+            SortByDistanceToOwnBase(allTargets);
+            var targets = allTargets.Take(MaxTargets);
+            var _targetId = UnitID % targets.Count();
             
-            Vector2Int closestTarget = new Vector2Int(int.MinValue, int.MinValue);
-            foreach (var target in allTargets) {
-                var targetDistance = DistanceToOwnBase(target);
-                if (targetDistance < closestValue) {
-                    closestValue = targetDistance;
-                    closestTarget = target;
-                }
-            }
-            if (closestValue != float.MaxValue) {
-                unreachableTargets.Add(closestTarget);
-                if (IsTargetInRange(closestTarget)) {
-                    reachableTargets.Add(closestTarget);
-                }
+            unreachableTargets.Add(targets.ElementAt(_targetId));
+
+            if (IsTargetInRange(targets.ElementAt(_targetId))) {
+                reachableTargets.Add(targets.ElementAt(_targetId));
             }
 
             return reachableTargets;
