@@ -10,49 +10,60 @@ namespace UnitBrains.Player
     public enum UnitState {
         Move,
         Attack,
-        Switch
+        // Switch
     }
 
     public class ThirdUnitBrain : DefaultPlayerUnitBrain {
         public override string TargetUnitName => "Ironclad Behemoth";
         // public static int UnitCounter = 0;
         // private int UnitID = UnitCounter++;
+        private bool _isSwitchingStates = false;
         private float StateSwitchCooldownTimeSeconds = 1f;
         private float _stateSwitchCooldownTime = 0f;
-        private UnitState _prevUnitState = UnitState.Move;
+        private UnitState _nextUnitState = UnitState.Move;
         private UnitState _unitState = UnitState.Move;
 
-        private void ToggleState(UnitState state) {
-            if (state == _unitState) {
+        public void QueueStateSwitch(UnitState state) {
+            if (state == _unitState || _isSwitchingStates) {
                 return;
             }
-            // if (state != UnitState.Switch) {
-            //     Debug.Log($"Unit#{UnitID} toggling to State \"{state}\"");
-            // }
-            _prevUnitState = _unitState;
-            _unitState = state;
+            _isSwitchingStates = true;
+            _nextUnitState = state;
+        }
+
+        private void TryToggleState() {
+            if (_nextUnitState == _unitState || _isSwitchingStates) {
+                return;
+            }
+            // Debug.Log($"Unit#{UnitID} toggling to State \"{_nextUnitState}\"");
+            _unitState = _nextUnitState;
+            _isSwitchingStates = false;
         }
 
         public override void Update(float deltaTime, float time)
         {
             base.Update(deltaTime, time);
-            if (_unitState == UnitState.Switch) {
+            if (_isSwitchingStates) {
                 _stateSwitchCooldownTime += Time.deltaTime;
                 if (_stateSwitchCooldownTime >= StateSwitchCooldownTimeSeconds) {
                     _stateSwitchCooldownTime = 0;
-                    ToggleState( (_prevUnitState == UnitState.Move) ? UnitState.Attack : UnitState.Move );
+                    _isSwitchingStates = false;
                 }
             }
+            TryToggleState();
         }
 
         protected override List<Vector2Int> SelectTargets()
         {
             var targets = base.SelectTargets();
             if (_unitState != UnitState.Attack) {
+                if (targets.Any()) {
+                    QueueStateSwitch(UnitState.Attack);
+                }   
                 return new();
             }
             if (!targets.Any()) {
-                ToggleState(UnitState.Switch);
+                QueueStateSwitch(UnitState.Move);
             }
             return targets;
         }
@@ -62,9 +73,9 @@ namespace UnitBrains.Player
             if (_unitState != UnitState.Move) {
                 return unit.Pos;
             }
-            if (nextStep == unit.Pos) {
-                ToggleState(UnitState.Switch);
-            }
+            // if (nextStep == unit.Pos) {
+            //     ToggleState(UnitState.Switch);
+            // }
             return nextStep;
         }
     }
