@@ -9,8 +9,12 @@ namespace UnitBrains.Pathfinding
 {
     public class AStarUnitPath : BaseUnitPath
     {
-        private int[] dx = { -1, 0, 1, 0 };
-        private int[] dy = { 0, 1, 0, -1 };
+        private Vector2Int[] dxy = {
+            Vector2Int.down,
+            Vector2Int.left,
+            Vector2Int.right,
+            Vector2Int.up
+        };
         private const int MaxLength = 100;
         public AStarUnitPath(IReadOnlyRuntimeModel runtimeModel, Vector2Int startPoint, Vector2Int endPoint) : base(runtimeModel, startPoint, endPoint)
         {
@@ -18,71 +22,58 @@ namespace UnitBrains.Pathfinding
 
         protected override void Calculate()
         {
-            //var currentPoint = startPoint;
-            //var result = new List<Vector2Int> { startPoint };
             var route = CalculateAStar();
             if (route != null)
             {
+                route.Reverse();
                 path = route.ToArray();
             }
         }
 
+        private int CalculateEstimate(Vector2Int fromPos, Vector2Int toPos) => Math.Abs(fromPos.x - toPos.x) + Math.Abs(fromPos.y - toPos.y);
+
         private List<Vector2Int> CalculateAStar()
         {
             var counter = 0;
-            Node startNode = new(startPoint);
-            startNode.CalculateEstimate(endPoint);
-            startNode.CalculateValue();
+            var routeFound = false;
+            Node startNode = new(startPoint, CalculateEstimate(startPoint, endPoint));
             List<Node> openList = new() { startNode };
             HashSet<Vector2Int> closedList = new();
             Node currentNode = openList[0];
             while (openList.Count > 0 && counter++ < MaxLength) {
-                //string debugOpenPoints = "";
-                string debugClosedPoints = "";
                 foreach (var node in openList) {
-                    //debugOpenPoints += ($"[{node.CoordinatePoint.x},{node.CoordinatePoint.y}]({node.Value}) ; ");
                     if (node.Value < currentNode.Value) {
                         currentNode = node;
                     }
                 }
-                //Debug.Log($"current open list nodes: {openList.Count}: {debugOpenPoints}");
-                foreach (var node in closedList)
-                    debugClosedPoints += ($"[{node.x},{node.y}] ; ");
-                Debug.Log($"current closed list nodes: {closedList.Count}: {debugClosedPoints}");
 
                 openList.Remove(currentNode);
-                //if (!closedList.Contains(currentNode.CoordinatePoint))
                 closedList.Add(currentNode.CoordinatePoint);
 
-                if (currentNode.CoordinatePoint == endPoint) {
-                    Debug.Log($"Found an route!");
+                if (routeFound) {
                     List<Vector2Int> _path = new();
                     while(currentNode != null) {
                         _path.Add(currentNode.CoordinatePoint);
                         currentNode = currentNode.Parent;
                     }
-
-                    _path.Reverse();
                     return _path;
                 }
 
-                for (int i = 0; i < dx.Length; i++) {
-                    Vector2Int newPoint = new Vector2Int(
-                        currentNode.CoordinatePoint.x + dx[i],
-                        currentNode.CoordinatePoint.y + dy[i]
-                        );
+                for (int i = 0; i < dxy.Length; i++) {
+                    Vector2Int newPoint = currentNode.CoordinatePoint + dxy[i];
                     if (closedList.Contains(newPoint))
                         continue;
 
+                    if (newPoint == endPoint)
+                        routeFound = true;
+
                     if (runtimeModel.IsTileWalkable(newPoint)) {
-                        Node neighbor = new(newPoint);
-                        neighbor.Parent = currentNode;
-                        neighbor.CalculateEstimate(endPoint);
-                        neighbor.CalculateValue();
+                        Node neighbor = new(newPoint, CalculateEstimate(newPoint, endPoint), startNode.Cost, currentNode);
                         openList.Add(neighbor);
                     }
                 }
             }
+            // TODO: handle border cases (when route is not found)
             return null;
         }
     }
