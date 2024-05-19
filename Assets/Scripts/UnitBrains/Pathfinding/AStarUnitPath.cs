@@ -22,7 +22,7 @@ namespace UnitBrains.Pathfinding
 
         protected override void Calculate()
         {
-            var route = CalculateAStar();
+            var route = CalculateAStar(startPoint, endPoint);
             if (route != null)
             {
                 route.Reverse();
@@ -32,11 +32,11 @@ namespace UnitBrains.Pathfinding
 
         private int CalculateEstimate(Vector2Int fromPos, Vector2Int toPos) => Math.Abs(fromPos.x - toPos.x) + Math.Abs(fromPos.y - toPos.y);
 
-        private List<Vector2Int> CalculateAStar()
+        private List<Vector2Int> CalculateAStar(Vector2Int fromPos, Vector2Int toPos)
         {
             var counter = 0;
             var routeFound = false;
-            Node startNode = new(startPoint, CalculateEstimate(startPoint, endPoint));
+            Node startNode = new(fromPos, CalculateEstimate(fromPos, toPos));
             List<Node> openList = new() { startNode };
             HashSet<Vector2Int> closedList = new();
             Node currentNode = openList[0];
@@ -64,17 +64,25 @@ namespace UnitBrains.Pathfinding
                     if (closedList.Contains(newPoint))
                         continue;
 
-                    if (newPoint == endPoint)
+                    if (newPoint == toPos)
                         routeFound = true;
 
-                    if (runtimeModel.IsTileWalkable(newPoint)) {
-                        Node neighbor = new(newPoint, CalculateEstimate(newPoint, endPoint), startNode.Cost, currentNode);
-                        openList.Add(neighbor);
+                    if (runtimeModel.IsTileWalkable(newPoint) || routeFound) {
+                        Node neighbor = new(newPoint, CalculateEstimate(newPoint, toPos), startNode.Cost, currentNode);
+                        bool hasOpenNode = false;
+                        foreach (var node in openList) {
+                            if (node.CoordinatePoint == newPoint) {
+                                hasOpenNode = true;
+                                break;
+                            }
+                        }
+                        if (!hasOpenNode)
+                            openList.Add(neighbor);
                     }
                 }
             }
             // TODO: handle border cases (when route is not found)
-            return null;
+            return new() { fromPos };
         }
     }
 }
