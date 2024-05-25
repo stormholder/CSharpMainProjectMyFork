@@ -3,16 +3,16 @@ using UnityEngine;
 namespace UnitBrains.Pathfinding
 {
     public class Node {
-        public readonly Vector2Int CoordinatePoint;
-        public readonly int Cost;
-        public readonly int Estimate;
-        public int Value => Cost + Estimate;
-        public readonly Node Parent;
+        public readonly Vector2Int Pos;
+        public int G; // cost from start pos
+        public int H; // estimate cost to end pos
+        public int Value => G + H;
+        public Node Parent;
 
-        public Node(Vector2Int coord, int estimate, int cost = 10, Node parent = null) {
-            CoordinatePoint = coord;
-            Cost = cost;
-            Estimate = estimate;
+        public Node(Vector2Int coord, int h = 0, int g = 0, Node parent = null) {
+            Pos = coord;
+            G = g;
+            H = h;
             Parent = parent;
         }
     }
