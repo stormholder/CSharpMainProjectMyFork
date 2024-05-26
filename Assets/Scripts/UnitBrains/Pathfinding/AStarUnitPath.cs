@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Model;
 using UnityEngine;
 
@@ -7,19 +8,16 @@ namespace UnitBrains.Pathfinding
 {
     public class AStarUnitPath : BaseUnitPath
     {
+        private int MaxLength = 100;
         private Vector2Int[] successors = {
             Vector2Int.down,
-            //new Vector2Int(-1, -1), //down-left
             Vector2Int.left,
-            //new Vector2Int(-1, 1), //up-left
             Vector2Int.up,
-            //new Vector2Int(1, 1), //up-right
             Vector2Int.right,
-            //new Vector2Int(1, -1), //down-right
         };
-        //private const int MaxLength = 100;
         public AStarUnitPath(IReadOnlyRuntimeModel runtimeModel, Vector2Int startPoint, Vector2Int endPoint) : base(runtimeModel, startPoint, endPoint)
         {
+            MaxLength = runtimeModel.RoMap.Width * runtimeModel.RoMap.Height;
         }
 
         protected override void Calculate()
@@ -27,16 +25,13 @@ namespace UnitBrains.Pathfinding
             var route = CalculateAStar(startPoint, endPoint);
             if (route != null)
             {
-                route.Reverse();
-                path = route.ToArray();
+                var r = getPathFromNode(route);
+                r.Reverse();
+                path = r.ToArray();
             }
         }
 
-        //private int CalculateEstimate(Vector2Int fromPos, Vector2Int toPos) => Math.Abs(fromPos.x - toPos.x) + Math.Abs(fromPos.y - toPos.y);
-        private int CalculateEstimate(Vector2Int fromPos, Vector2Int toPos) => (int)Math.Sqrt(
-                                    Math.Pow(toPos.x - fromPos.x, 2) +
-                                    Math.Pow(toPos.y - fromPos.y, 2)
-                                );
+        private int CalculateEstimate(Vector2Int fromPos, Vector2Int toPos) => Math.Abs(fromPos.x - toPos.x) + Math.Abs(fromPos.y - toPos.y);
 
         private List<Vector2Int> getPathFromNode(Node node)
         {
@@ -49,87 +44,83 @@ namespace UnitBrains.Pathfinding
             return _path;
         }
 
-        private List<Vector2Int> CalculateAStar(Vector2Int fromPos, Vector2Int toPos)
+        private Node getBestNode(List<Node> frontier)
+        {
+            if (frontier.Count == 0)
+            {
+                return null;
+            }
+            int bestIndex = 0;
+
+            for (int i = 0; i < frontier.Count; i++)
+            {
+                if (frontier[i].Value < frontier[bestIndex].Value)
+                {
+                    bestIndex = i;
+                }
+            }
+            Node bestNode = frontier[bestIndex];
+            frontier.RemoveAt(bestIndex);
+            return bestNode;
+        }
+
+        private Node CalculateAStar(Vector2Int fromPos, Vector2Int toPos)
         {
             Node startNode = new(fromPos, CalculateEstimate(fromPos, toPos));
-            List<Node> openList = new() { startNode };
-            HashSet<Vector2Int> closedList = new();
+            List<Node> frontier = new() { startNode };
+            HashSet<Vector2Int> visited = new();
             bool routeFound = false;
+            var counter = 0;
+            Node currentNode = null;
 
-            while(openList.Count > 0)
+            while (frontier.Count > 0 && counter++ < MaxLength)
             {
-                Node currentNode = openList[0];
-                foreach (var node in openList)
+                currentNode = getBestNode(frontier);
+                if (currentNode == null)
                 {
-                    if (node.Value < currentNode.Value)
-                    {
-                        currentNode = node;
-                    }
+                    break;
                 }
-                openList.Remove(currentNode);
-                if (closedList.Contains(currentNode.Pos))
-                    continue;
 
                 if (routeFound)
                 {
-                    return getPathFromNode(currentNode);
+                    return currentNode;
                 }
 
-                closedList.Add(currentNode.Pos);
+                visited.Add(currentNode.Pos);
 
-                foreach (Vector2Int n in successors)
+                for (int i = 0; i < successors.Length; i++)
                 {
-                    Vector2Int newPoint = currentNode.Pos + n;
+                    Vector2Int s = successors[i];
+                    Vector2Int neighborPoint = currentNode.Pos + s;
 
-                    if (closedList.Contains(newPoint))
+                    if (visited.Contains(neighborPoint))
                         continue;
 
-                    if (newPoint == endPoint)
+                    if (neighborPoint == endPoint)
                     {
                         routeFound = true;
-                        break;
                     }
-
-                    if (!runtimeModel.IsTileWalkable(newPoint))
-                        continue;
-
-                    CalculateNeigborWeights(openList, currentNode, newPoint);
+                    if (IsTileValid(neighborPoint) || routeFound)
+                        CalculateNeigborWeights(frontier, currentNode, neighborPoint, endPoint);
                 }
 
             }
-            // TODO: handle border cases (when route is not found)
-            //return new() { fromPos };
-            return null;
+            return currentNode;
         }
 
-        private void CalculateNeigborWeights(List<Node> openList, Node currentNode, Vector2Int newPoint)
-        {
-            var new_g = currentNode.G + 1;
+        private bool IsTileValid(Vector2Int neighborPoint) => 
+            neighborPoint.x < 0 || neighborPoint.x >= runtimeModel.RoMap.Width || neighborPoint.y < 0 || neighborPoint.y >= runtimeModel.RoMap.Height
+                ? false
+                : runtimeModel.IsTileWalkable(neighborPoint);
 
-            int nfo_i = -1; //if neighbor is in OpenList, set nfo_i to its index
-            for (var i = 0; i < openList.Count; i++)
-            {
-                if (openList[i].Pos == newPoint)
-                {
-                    nfo_i = i;
-                    break;
-                }
-            }
-            if (nfo_i >= 0) //if neighbor found
-            {
-                if (new_g < openList[nfo_i].G)
-                { //update and recalculate weights
-                    openList[nfo_i].G = new_g;
-                    openList[nfo_i].H = CalculateEstimate(openList[nfo_i].Pos, endPoint);
-                    openList[nfo_i].Parent = currentNode;
-                }
-            }
-            else //if neighbor is not in openList, just add it
+        private void CalculateNeigborWeights(List<Node> openList, Node currentNode, Vector2Int neighborPoint,  Vector2Int endPoint)
+        {
+            if (!openList.Any(n => n.Pos == neighborPoint))
             {
                 openList.Add(new Node(
-                    newPoint,
-                    CalculateEstimate(newPoint, endPoint),
-                    new_g,
+                    neighborPoint,
+                    CalculateEstimate(neighborPoint, endPoint),
+                    1,
                     currentNode));
             }
         }
