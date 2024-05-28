@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Model.Runtime.Projectiles;
+using UnitBrains.Pathfinding;
 using UnityEngine;
 using Utilities;
+using static UnityEngine.GraphicsBuffer;
 
 namespace UnitBrains.Player
 {
@@ -41,6 +43,7 @@ namespace UnitBrains.Player
 
         public override Vector2Int GetNextStep()
         {
+            base.GetNextStep();
             return unreachableTargets.Any()
                ? unit.Pos.CalcNextStepTowards(unreachableTargets.First())
                : unit.Pos;
