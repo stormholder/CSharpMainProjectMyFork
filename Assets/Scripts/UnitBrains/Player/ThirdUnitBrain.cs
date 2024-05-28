@@ -18,7 +18,7 @@ namespace UnitBrains.Player
         // public static int UnitCounter = 0;
         // private int UnitID = UnitCounter++;
         private bool _isSwitchingStates = false;
-        private float StateSwitchCooldownTimeSeconds = 1f;
+        private float StateSwitchCooldownTimeSeconds = .1f;
         private float _stateSwitchCooldownTime = 0f;
         private UnitState _nextUnitState = UnitState.Move;
         private UnitState _unitState = UnitState.Move;
