@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Model;
+using System;
 using System.Collections.Generic;
 using System.Text;
+using Utilities;
 
 namespace Assets.Scripts.UnitBrains
 {
@@ -8,7 +10,9 @@ namespace Assets.Scripts.UnitBrains
     {
         private static Coordinator? instance;
 
-        private Coordinator() { }
+        private Coordinator() {
+            timeUtil.AddFixedUpdateAction(FixedUpdate);
+        }
 
         public static Coordinator GetInstance()
         {
@@ -18,5 +22,14 @@ namespace Assets.Scripts.UnitBrains
             }
             return instance;
         }
+
+        protected IReadOnlyRuntimeModel runtimeModel => ServiceLocator.Get<IReadOnlyRuntimeModel>();
+        protected TimeUtil timeUtil => ServiceLocator.Get<TimeUtil>();
+
+        private void FixedUpdate(float timeDelta)
+        {
+            // TODO
+        }
+
     }
 }
