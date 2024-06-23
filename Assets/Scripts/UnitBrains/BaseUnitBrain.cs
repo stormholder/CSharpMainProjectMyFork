@@ -19,7 +19,7 @@ namespace UnitBrains
         
         protected Unit unit { get; private set; }
         protected IReadOnlyRuntimeModel runtimeModel => ServiceLocator.Get<IReadOnlyRuntimeModel>();
-        protected Coordinator coordinator => Coordinator.GetInstance();
+        protected Coordinator coordinator;
         private BaseUnitPath _activePath = null;
         
         private readonly Vector2[] _projectileShifts = new Vector2[]
@@ -35,7 +35,7 @@ namespace UnitBrains
 
         public virtual Vector2Int GetNextStep()
         {
-            var recommendedTarget = IsPlayerUnitBrain ? coordinator.recommendedUnitForPlayer : coordinator.recommendedUnitForBotPlayer;
+            var recommendedTarget = coordinator.recommendedUnit;
 
             if (HasTargetsInRange())
                 return unit.Pos;
@@ -66,6 +66,11 @@ namespace UnitBrains
             }
 
             return result;
+        }
+
+        public void SetCoordinator(Coordinator coordinator)
+        {
+            this.coordinator = coordinator;
         }
 
         public void SetUnit(Unit unit)
