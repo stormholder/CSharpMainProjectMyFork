@@ -1,10 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Assets.Scripts.UnitBrains;
+using Controller;
 using Model.Config;
 using Model.Runtime.Projectiles;
 using Model.Runtime.ReadOnly;
 using UnitBrains;
+using UnitBrains.Buff;
 using UnitBrains.Pathfinding;
 using UnityEngine;
 using Utilities;
@@ -23,6 +25,7 @@ namespace Model.Runtime
         private readonly List<BaseProjectile> _pendingProjectiles = new();
         private IReadOnlyRuntimeModel _runtimeModel;
         private BaseUnitBrain _brain;
+        private BuffController _buffController;
 
         private float _nextBrainUpdateTime = 0f;
         private float _nextMoveTime = 0f;
@@ -37,6 +40,7 @@ namespace Model.Runtime
             _brain.SetUnit(this);
             _brain.SetCoordinator(coordinator);
             _runtimeModel = ServiceLocator.Get<IReadOnlyRuntimeModel>();
+            _buffController = ServiceLocator.Get<BuffController>();
         }
 
         public void Update(float deltaTime, float time)
@@ -49,16 +53,31 @@ namespace Model.Runtime
                 _nextBrainUpdateTime = time + Config.BrainUpdateInterval;
                 _brain.Update(deltaTime, time);
             }
+
+            var buffs = _buffController.GetUnitBuffs(this);
             
             if (_nextMoveTime < time)
             {
-                _nextMoveTime = time + Config.MoveDelay;
+                float speedModifier = 1.0f;
+                var speedBuff = buffs.FirstOrDefault(b => b.GetType().Equals(typeof(SpeedBuff)));
+                if (speedBuff != null)
+                {
+                    speedModifier = speedBuff.Modifier;
+                }
+                _nextMoveTime = time + Config.MoveDelay / speedModifier;
                 Move();
             }
             
             if (_nextAttackTime < time && Attack())
             {
-                _nextAttackTime = time + Config.AttackDelay;
+                // TODO
+                float attackModifier = 1.0f;
+                var attackBuff = buffs.FirstOrDefault(b => b.GetType().Equals(typeof(AttackPowerBuff)));
+                if (attackBuff != null)
+                {
+                    attackModifier = attackBuff.Modifier;
+                }
+                _nextAttackTime = time + Config.AttackDelay / attackModifier;
             }
         }
 
