@@ -21,7 +21,9 @@ namespace UnitBrains
         protected IReadOnlyRuntimeModel runtimeModel => ServiceLocator.Get<IReadOnlyRuntimeModel>();
         protected Coordinator coordinator;
         private BaseUnitPath _activePath = null;
-        
+        public static int UnitCounter = 0;
+        protected int UnitID = UnitCounter++;
+
         private readonly Vector2[] _projectileShifts = new Vector2[]
         {
             new (0f, 0f),

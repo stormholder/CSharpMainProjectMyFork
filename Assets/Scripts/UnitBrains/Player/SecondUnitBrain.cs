@@ -11,7 +11,7 @@ namespace UnitBrains.Player
     public class SecondUnitBrain : DefaultPlayerUnitBrain
     {
         public override string TargetUnitName => "Cobra Commando";
-        public static int UnitCounter = 0;
+        //public static int UnitCounter = 0;
         public const int MaxTargets = 3;
         private const float OverheatTemperature = 3f;
         private const float OverheatCooldown = 2f;
@@ -19,7 +19,7 @@ namespace UnitBrains.Player
         private float _cooldownTime = 0f;
         private bool _overheated;
 
-        private int UnitID = UnitCounter++;
+        //private int UnitID = UnitCounter++;
 
         private List<Vector2Int> unreachableTargets = new();
         
