@@ -8,6 +8,8 @@ namespace UnitBrains.Buff
 {
     public class AttackPowerBuff : BaseBuff
     {
-        public AttackPowerBuff(float duration, float modifier) : base(duration, modifier) { }
+        public AttackPowerBuff(float duration, float modifier) : base(duration, modifier) {
+            this.BuffType = BuffType.AttackPower;
+        }
     }
 }

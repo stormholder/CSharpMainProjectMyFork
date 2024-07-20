@@ -8,6 +8,8 @@ namespace UnitBrains.Buff
 {
     public class SpeedBuff : BaseBuff
     {
-        public SpeedBuff(float duration, float modifier) : base(duration, modifier) { }
+        public SpeedBuff(float duration, float modifier) : base(duration, modifier) {
+            this.BuffType = BuffType.Speed;
+        }
     }
 }

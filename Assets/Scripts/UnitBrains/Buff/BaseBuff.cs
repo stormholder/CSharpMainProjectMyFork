@@ -7,8 +7,10 @@ using UnityEngine;
 
 namespace UnitBrains.Buff
 {
+
     public class BaseBuff
     {
+        public BuffType BuffType = BuffType.None;
         public float Duration { get; set; }
         public float Modifier { get; private set; }
 

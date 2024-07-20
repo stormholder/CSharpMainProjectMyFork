@@ -59,7 +59,7 @@ namespace Model.Runtime
             if (_nextMoveTime < time)
             {
                 float speedModifier = 1.0f;
-                var speedBuff = buffs.FirstOrDefault(b => b.GetType().Equals(typeof(SpeedBuff)));
+                var speedBuff = buffs.FirstOrDefault(b => b.BuffType == BuffType.Speed);
                 if (speedBuff != null)
                 {
                     speedModifier = speedBuff.Modifier;
@@ -72,7 +72,7 @@ namespace Model.Runtime
             {
                 // TODO
                 float attackModifier = 1.0f;
-                var attackBuff = buffs.FirstOrDefault(b => b.GetType().Equals(typeof(AttackPowerBuff)));
+                var attackBuff = buffs.FirstOrDefault(b => b.BuffType == BuffType.AttackPower);
                 if (attackBuff != null)
                 {
                     attackModifier = attackBuff.Modifier;
