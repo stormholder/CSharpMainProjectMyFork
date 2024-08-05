@@ -38,10 +38,16 @@ namespace UnitBrains.Player
                     var ally = allies.First();
                     _buffController.AddUnitBuff(ally, new AttackPowerBuff(3.0f, 2.0f));
                     _buffController.AddUnitBuff(ally, new SpeedBuff(2.0f, 1.5f));
+                    Debug.Log($"Buffed ally \"{ally.Config.Name}\"");
                     _vfxView.PlayVFX(ally.Pos, VFXView.VFXType.BuffApplied);
                     _isBuffReady = false;
                 }
             }
+        }
+
+        protected override List<Vector2Int> SelectTargets()
+        {
+            return new();
         }
 
         private List<Model.Runtime.Unit> SelectAllies()
