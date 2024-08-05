@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Controller;
-using Model.Runtime.Projectiles;
+using UnitBrains.Buff;
 using UnityEngine;
 using Utilities;
 using View;
@@ -12,21 +12,47 @@ namespace UnitBrains.Player
     {
         private VFXView _vfxView = ServiceLocator.Get<VFXView>();
         private BuffController _buffController = ServiceLocator.Get<BuffController>();
+        private bool _isBuffReady = false;
+        private float CooldownTimeSeconds = .5f;
+        private float _cooldownTime = 0f;
 
         public override string TargetUnitName => "Buffy Knight";
 
         public override void Update(float deltaTime, float time)
         {
             base.Update(deltaTime, time);
-            // TODO: buff closest ally if it does not have a buff
-            // TODO: pause by 0.5 seconds after buff "attack"
+            if (!_isBuffReady)
+            {
+                _cooldownTime += Time.deltaTime;
+                if (_cooldownTime >= CooldownTimeSeconds)
+                {
+                    _cooldownTime = 0;
+                    _isBuffReady = true;
+                }
+            } else
+            {
+                var allies = SelectAllies();
+                // buff first ally if it does not have a buff
+                if (allies.Any())
+                {
+                    var ally = allies.First();
+                    _buffController.AddUnitBuff(ally, new AttackPowerBuff(3.0f, 2.0f));
+                    _buffController.AddUnitBuff(ally, new SpeedBuff(2.0f, 1.5f));
+                    _vfxView.PlayVFX(ally.Pos, VFXView.VFXType.BuffApplied);
+                    _isBuffReady = false;
+                }
+            }
         }
 
-        protected override List<Vector2Int> SelectTargets()
+        private List<Model.Runtime.Unit> SelectAllies()
         {
-            // TODO: choose allied units as targets
-            var targets = base.SelectTargets();
-            return targets;
+            // choose allied units as targets
+            return runtimeModel.RoUnits
+                .Where(u => u.Config.IsPlayerUnit == IsPlayerUnitBrain)
+                .Where(u => IsTargetInRange(u.Pos))
+                .Select(u => (Model.Runtime.Unit)u)
+                .Where(u => !_buffController.GetUnitBuffs(u).Any())
+                .ToList();
         }
 
         public override Vector2Int GetNextStep()

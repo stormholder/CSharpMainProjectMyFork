@@ -41,8 +41,9 @@ namespace Controller
                 return;
             foreach (var unitBuffList in _unitBuffs.Values)
             {
-                foreach (var unitBuff in unitBuffList)
+                for (int i = 0; i < unitBuffList.Count; i++)
                 {
+                    BaseBuff unitBuff = unitBuffList[i];
                     unitBuff.Duration -= timeDelta;
                     if (unitBuff.Duration <= 0)
                         unitBuffList.Remove(unitBuff);
