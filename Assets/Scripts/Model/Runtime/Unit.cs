@@ -25,12 +25,16 @@ namespace Model.Runtime
         private readonly List<BaseProjectile> _pendingProjectiles = new();
         private IReadOnlyRuntimeModel _runtimeModel;
         private BaseUnitBrain _brain;
-        private BuffController _buffController;
 
         private float _nextBrainUpdateTime = 0f;
         private float _nextMoveTime = 0f;
         private float _nextAttackTime = 0f;
-        
+
+        public float SpeedModifier { get; set; } = 1.0f;
+        public float AttackModifier { get; set; } = 1.0f;
+        public float RangeModifier { get; set; } = 1.0f;
+
+
         public Unit(UnitConfig config, Vector2Int startPos, Coordinator coordinator)
         {
             Config = config;
@@ -40,7 +44,6 @@ namespace Model.Runtime
             _brain.SetUnit(this);
             _brain.SetCoordinator(coordinator);
             _runtimeModel = ServiceLocator.Get<IReadOnlyRuntimeModel>();
-            _buffController = ServiceLocator.Get<BuffController>();
         }
 
         public void Update(float deltaTime, float time)
@@ -54,30 +57,15 @@ namespace Model.Runtime
                 _brain.Update(deltaTime, time);
             }
 
-            var buffs = _buffController.GetUnitBuffs(this);
-            
             if (_nextMoveTime < time)
             {
-                float speedModifier = 1.0f;
-                var speedBuff = buffs.FirstOrDefault(b => b.BuffType == BuffType.Speed);
-                if (speedBuff != null)
-                {
-                    speedModifier = speedBuff.Modifier;
-                }
-                _nextMoveTime = time + Config.MoveDelay / speedModifier;
+                _nextMoveTime = time + Config.MoveDelay / SpeedModifier;
                 Move();
             }
             
             if (_nextAttackTime < time && Attack())
             {
-                // TODO
-                float attackModifier = 1.0f;
-                var attackBuff = buffs.FirstOrDefault(b => b.BuffType == BuffType.AttackPower);
-                if (attackBuff != null)
-                {
-                    attackModifier = attackBuff.Modifier;
-                }
-                _nextAttackTime = time + Config.AttackDelay / attackModifier;
+                _nextAttackTime = time + Config.AttackDelay;// / AttackModifier;
             }
         }
 
