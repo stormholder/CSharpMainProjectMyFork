@@ -55,6 +55,7 @@ namespace UnitBrains.Player
             // choose allied units as targets
             return runtimeModel.RoUnits
                 .Where(u => u.Config.IsPlayerUnit == IsPlayerUnitBrain)
+                .Where(u => u != this.unit)
                 .Where(u => IsTargetInRange(u.Pos))
                 .Select(u => (Model.Runtime.Unit)u)
                 .Where(u => !_buffController.GetUnitBuffs(u).Any())
