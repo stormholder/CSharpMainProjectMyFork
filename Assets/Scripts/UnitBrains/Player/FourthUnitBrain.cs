@@ -11,7 +11,7 @@ namespace UnitBrains.Player
     public class FourthUnitBrain : DefaultPlayerUnitBrain
     {
         private VFXView _vfxView = ServiceLocator.Get<VFXView>();
-        private BuffController _buffController = ServiceLocator.Get<BuffController>();
+        private BuffController<IBuffable> _buffController = ServiceLocator.Get<BuffController<IBuffable>>();
         private bool _isBuffReady = false;
         private float CooldownTimeSeconds = .5f;
         private float _cooldownTime = 0f;
@@ -36,8 +36,8 @@ namespace UnitBrains.Player
                 if (allies.Any())
                 {
                     var ally = allies.First();
-                    _buffController.AddUnitBuff(ally, new AttackPowerBuff(3.0f, 2.0f));
-                    _buffController.AddUnitBuff(ally, new SpeedBuff(2.0f, 1.5f));
+                    _buffController.AddUnitBuff(ally, new AttackPowerBuff(ally, 3.0f, 2.0f));
+                    _buffController.AddUnitBuff(ally, new SpeedBuff(ally, 2.0f, 1.5f));
                     Debug.Log($"Buffed ally \"{ally.Config.Name}\"");
                     _vfxView.PlayVFX(ally.Pos, VFXView.VFXType.BuffApplied);
                     _isBuffReady = false;

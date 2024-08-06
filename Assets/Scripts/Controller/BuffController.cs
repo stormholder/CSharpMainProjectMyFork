@@ -1,20 +1,15 @@
 ﻿using Model.Runtime;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnitBrains.Buff;
-using UnityEngine;
-using UnityEngine.UIElements;
 using Utilities;
 
 namespace Controller
 {
-    public class BuffController : IDisposable
+    public class BuffController<T> : IDisposable where T : IBuffable
     {
-        Dictionary<Unit, List<BaseBuff>> _unitBuffs = new();
+        Dictionary<Unit, List<T>> _unitBuffs = new();
         private TimeUtil _time = ServiceLocator.Get<TimeUtil>();
 
         public BuffController()
@@ -22,16 +17,17 @@ namespace Controller
             _time.AddFixedUpdateAction(UpdateCoroutine);
         }
 
-        public void AddUnitBuff(Unit unit, BaseBuff buff)
+        public void AddUnitBuff(Unit unit, T buff)
         {
             if (!_unitBuffs.ContainsKey(unit))
             {
-                _unitBuffs.Add(unit, new List<BaseBuff>());
+                _unitBuffs.Add(unit, new List<T>());
             }
+            buff.Activate();
             _unitBuffs[unit].Add(buff);
         }
 
-        public List<BaseBuff> GetUnitBuffs(Unit unit)
+        public List<T> GetUnitBuffs(Unit unit)
         {
             return (_unitBuffs.ContainsKey(unit)) ? _unitBuffs[unit] : new();
         }
@@ -43,9 +39,10 @@ namespace Controller
             {
                 for (int i = 0; i < unitBuffList.Count; i++)
                 {
-                    BaseBuff unitBuff = unitBuffList[i];
-                    unitBuff.Duration -= timeDelta;
-                    if (unitBuff.Duration <= 0)
+                    T unitBuff = unitBuffList[i];
+                    unitBuff.ReduceDurationByDelta(timeDelta);
+                    if (!unitBuff.IsActive())
+                        unitBuff.Dispose();
                         unitBuffList.Remove(unitBuff);
                 }
             }
@@ -53,12 +50,18 @@ namespace Controller
 
         public void Dispose()
         {
+            if (_unitBuffs.Values.Count > 0)
+            {
+                foreach (var buffList in _unitBuffs.Values)
+                {
+                    foreach (var buff in buffList)
+                    {
+                        buff.Dispose();
+                    }
+                }
+                _unitBuffs.Clear();
+            }
             _time.RemoveFixedUpdateAction(UpdateCoroutine);
-            //if (_updateCoroutine != null)
-            //{
-            //    _time.StopCoroutine(_updateCoroutine);
-            //    _updateCoroutine = null;
-            //}
         }
     }
 }

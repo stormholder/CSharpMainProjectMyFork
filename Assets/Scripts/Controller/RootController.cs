@@ -1,5 +1,6 @@
 ﻿using Model;
 using Model.Config;
+using UnitBrains.Buff;
 using UnityEngine;
 using Utilities;
 using View;
@@ -11,7 +12,7 @@ namespace Controller
         private readonly PersistedModel _persisted;
         private readonly RuntimeModel _runtimeModel;
         private readonly LevelController _levelController;
-        private readonly BuffController _buffController;
+        private readonly BuffController<IBuffable> _buffController;
 
         private RootView _rootView;
 
