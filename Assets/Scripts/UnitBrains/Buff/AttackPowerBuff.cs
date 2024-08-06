@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Model.Config;
+using Model.Runtime;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,8 +10,20 @@ namespace UnitBrains.Buff
 {
     public class AttackPowerBuff : BaseBuff
     {
-        public AttackPowerBuff(float duration, float modifier) : base(duration, modifier) {
+        public AttackPowerBuff(Unit unit, float duration, float modifier) : base(unit, duration, modifier) {
             this.BuffType = BuffType.AttackPower;
+        }
+
+        public override void Activate()
+        {
+            base.Activate();
+            unit.AttackModifier = modifier;
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            unit.AttackModifier = 1.0f;
         }
     }
 }

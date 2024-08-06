@@ -1,15 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Model.Runtime;
 
 namespace UnitBrains.Buff
 {
     public class SpeedBuff : BaseBuff
     {
-        public SpeedBuff(float duration, float modifier) : base(duration, modifier) {
+        public SpeedBuff(Unit unit, float duration, float modifier) : base(unit, duration, modifier) {
             this.BuffType = BuffType.Speed;
+        }
+
+        public override void Activate()
+        {
+            base.Activate();
+            unit.SpeedModifier = modifier;
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            unit.SpeedModifier = 1.0f;
         }
     }
 }
