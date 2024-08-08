@@ -1,10 +1,5 @@
 ﻿using Model.Runtime;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
 
 namespace UnitBrains.Buff
 {
@@ -20,7 +15,6 @@ namespace UnitBrains.Buff
 
     public class BaseBuff : IBuffable
     {
-        public BuffType BuffType = BuffType.None;
         public float Duration { get; set; }
         protected float modifier;
         protected Unit unit;
@@ -37,7 +31,7 @@ namespace UnitBrains.Buff
 
         public virtual bool CanApplyToUnit()
         {
-            throw new NotImplementedException();
+            return true;
         }
 
         public void ReduceDurationByDelta(float delta)

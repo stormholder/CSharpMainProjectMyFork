@@ -4,9 +4,8 @@ namespace UnitBrains.Buff
 {
     public class SpeedBuff : BaseBuff
     {
-        public SpeedBuff(Unit unit, float duration, float modifier) : base(unit, duration, modifier) {
-            this.BuffType = BuffType.Speed;
-        }
+        public SpeedBuff(Unit unit, float duration, float modifier) 
+            : base(unit, duration, modifier) {}
 
         public override void Activate()
         {
