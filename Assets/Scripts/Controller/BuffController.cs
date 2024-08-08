@@ -23,8 +23,13 @@ namespace Controller
             {
                 _unitBuffs.Add(unit, new List<T>());
             }
-            buff.Activate();
-            _unitBuffs[unit].Add(buff);
+            // TODO check if buff can be applied to unit
+            
+            if (buff.CanApplyToUnit() && !_unitBuffs[unit].Contains(buff))
+            {
+                buff.Activate();
+                _unitBuffs[unit].Add(buff);
+            }
         }
 
         public List<T> GetUnitBuffs(Unit unit)
