@@ -38,7 +38,15 @@ namespace UnitBrains.Player
                     var ally = allies.First();
                     _buffController.AddUnitBuff(ally, new AttackPowerBuff(ally, 3.0f, 2.0f));
                     _buffController.AddUnitBuff(ally, new SpeedBuff(ally, 2.0f, 1.5f));
-                    Debug.Log($"Buffed ally \"{ally.Config.Name}\"");
+                    _buffController.AddUnitBuff(ally, new TwinShopBuff(ally, 1.5f, 2.0f));
+                    _buffController.AddUnitBuff(ally, new AttackRangeBuff(ally, 2.5f, 1.5f));
+                    var activeBuffs = _buffController.GetUnitBuffs(ally);
+                    string activeBuffsSerialized = "";
+                    foreach (var buffs in activeBuffs)
+                    {
+                        activeBuffsSerialized += buffs.ToString() + ",";
+                    }
+                    Debug.Log($"Buffed ally \"{ally.Config.Name}\". Active buffs: \"{activeBuffsSerialized}\"");
                     _vfxView.PlayVFX(ally.Pos, VFXView.VFXType.BuffApplied);
                     _isBuffReady = false;
                 }
