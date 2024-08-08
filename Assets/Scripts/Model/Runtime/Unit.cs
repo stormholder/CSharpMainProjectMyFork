@@ -32,6 +32,7 @@ namespace Model.Runtime
 
         public float SpeedModifier { get; set; } = 1.0f;
         public float AttackModifier { get; set; } = 1.0f;
+        public float AttackTimeModifier { get; set; } = 1.0f;
         public float RangeModifier { get; set; } = 1.0f;
 
 
@@ -65,7 +66,7 @@ namespace Model.Runtime
             
             if (_nextAttackTime < time && Attack())
             {
-                _nextAttackTime = time + Config.AttackDelay;// / AttackModifier;
+                _nextAttackTime = time + Config.AttackDelay / AttackTimeModifier;
             }
         }
 
